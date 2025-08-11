@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Bel Sekolah - SMP Negeri 2 Kota Sukabumi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .bell-ring {
+            animation: ring 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes ring {
+            0% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-600">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center" id="logoContainer">
+                        <i class="fas fa-school text-white text-2xl" id="defaultLogo"></i>
+                        <img id="schoolLogo" class="w-full h-full rounded-full object-cover hidden" alt="Logo Sekolah">
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Aplikasi Bel Sekolah</h1>
+                        <p class="text-blue-600 font-medium">SMP Negeri 2 Kota Sukabumi</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="uploadLogo()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Upload Logo
+                    </button>
+                    <div class="text-right">
+                        <div id="currentTime" class="text-xl font-bold text-gray-800"></div>
+                        <div id="currentDate" class="text-sm text-gray-600"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Control Panel -->
+            <div class="lg:col-span-1">
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-bell text-blue-600 mr-2"></i>
+                        Kontrol Bel
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <button onclick="playBell()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center">
+                            <i class="fas fa-bell mr-2" id="bellIcon"></i>
+                            Bunyikan Bel Manual
+                        </button>
+                        
+                        <button onclick="stopBell()" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-stop mr-2"></i>
+                            Stop Bel
+                        </button>
+                        
+                        <div class="border-t pt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Volume Bel</label>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="70" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0%</span>
+                                <span id="volumeDisplay">70%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Status Sistem</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Status Bel:</span>
+                            <span id="bellStatus" class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Siap</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Jadwal Aktif:</span>
+                            <span id="scheduleCount" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">0 jadwal</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Bel Berikutnya:</span>
+                            <span id="nextBell" class="text-sm font-medium text-gray-800">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Management -->
+            <div class="lg:col-span-2">
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-calendar-alt text-blue-600 mr-2"></i>
+                            Jadwal Bel Sekolah
+                        </h2>
+                        <div class="flex space-x-2">
+                            <button onclick="showAddForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Tambah Jadwal
+                            </button>
+                            <button onclick="forceSave()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-save mr-1"></i>Debug Save
+                            </button>
+                            <button onclick="clearStorage()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-trash mr-1"></i>Clear Storage
+                            </button>
+                            <button onclick="showStorageInfo()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-info mr-1"></i>Storage Info
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Add/Edit Form -->
+                    <div id="scheduleForm" class="hidden bg-white bg-opacity-95 rounded-lg p-4 mb-6 fade-in">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4" id="formTitle">Tambah Jadwal Baru</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Waktu</label>
+                                <input type="time" id="scheduleTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
+                                <input type="text" id="scheduleDescription" placeholder="Contoh: Masuk Kelas, Istirahat, Pulang" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Hari</label>
+                                <select id="scheduleDay" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="all">Setiap Hari</option>
+                                    <option value="monday">Senin</option>
+                                    <option value="tuesday-thursday">Selasa - Kamis</option>
+                                    <option value="friday">Jumat</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Durasi Bel (detik)</label>
+                                <input type="number" id="scheduleDuration" value="5" min="1" max="30" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Suara Bel</label>
+                                <div class="flex space-x-3">
+                                    <select id="bellSoundType" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="toggleCustomSound()">
+                                        <option value="default">Suara Default</option>
+                                        <option value="custom">Upload Suara Kustom</option>
+                                    </select>
+                                    <button type="button" id="uploadSoundBtn" onclick="uploadBellSound()" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-upload mr-2"></i>Pilih File
+                                    </button>
+                                    <button type="button" id="testSoundBtn" onclick="testBellSound()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-play mr-2"></i>Test
+                                    </button>
+                                </div>
+                                <div id="soundFileName" class="text-sm text-gray-600 mt-2 hidden"></div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Background Aplikasi (Opsional)</label>
+                                <div class="flex space-x-3">
+                                    <button type="button" onclick="uploadBackgroundImage()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-image mr-2"></i>Upload Background
+                                    </button>
+                                    <button type="button" id="removeBackgroundBtn" onclick="removeBackgroundImage()" class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-trash mr-2"></i>Hapus Background
+                                    </button>
+                                    <button type="button" onclick="resetBackground()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-undo mr-2"></i>Reset Default
+                                    </button>
+                                </div>
+                                <div id="backgroundPreview" class="mt-3 hidden">
+                                    <img id="backgroundImagePreview" class="w-32 h-32 object-cover rounded-lg border-2 border-gray-300" alt="Preview Background">
+                                    <div id="backgroundFileName" class="text-sm text-gray-600 mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3 mt-4">
+                            <button onclick="saveSchedule()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-save mr-2"></i>Simpan
+                            </button>
+                            <button onclick="cancelForm()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-times mr-2"></i>Batal
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Schedule List -->
+                    <div id="scheduleList" class="space-y-3">
+                        <!-- Schedules will be populated here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="text-center py-12">
+                        <i class="fas fa-calendar-plus text-gray-400 text-6xl mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-600 mb-2">Belum Ada Jadwal</h3>
+                        <p class="text-gray-500 mb-4">Tambahkan jadwal bel untuk mengatur waktu otomatis</p>
+                        <button onclick="showAddForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                            Tambah Jadwal Pertama
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-lg border-t-4 border-blue-600 mt-12">
+        <div class="container mx-auto px-6 py-6">
+            <div class="text-center">
+                <p class="text-gray-600 font-medium">
+                    Hak Cipta © Engkus Kusnandar, CCNA, S.E, Gr @2025
+                </p>
+                <p class="text-sm text-gray-500 mt-2">
+                    Aplikasi Bel Sekolah - SMP Negeri 2 Kota Sukabumi
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="logoInput" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+    <input type="file" id="soundInput" accept="audio/*" class="hidden" onchange="handleSoundUpload(event)">
+    <input type="file" id="backgroundInput" accept="image/*" class="hidden" onchange="handleBackgroundUpload(event)">
+
+    <script>
+        let schedules = [];
+        let currentEditIndex = -1;
+        let bellTimeout = null;
+        let customBellSound = null;
+        let currentBellAudio = null;
+        let backgroundImage = null;
+
+        // Update time and date
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            const dateString = now.toLocaleDateString('id-ID', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            document.getElementById('currentTime').textContent = timeString;
+            document.getElementById('currentDate').textContent = dateString;
+            
+            checkSchedule(now);
+        }
+
+        // Check if any schedule should trigger
+        function checkSchedule(now) {
+            const currentTime = now.toTimeString().slice(0, 5);
+            const currentDay = now.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday, etc.
+            
+            schedules.forEach(schedule => {
+                if (schedule.time === currentTime) {
+                    let shouldPlay = false;
+                    
+                    if (schedule.day === 'all') {
+                        shouldPlay = true;
+                    } else if (schedule.day === 'monday' && currentDay === 1) {
+                        shouldPlay = true;
+                    } else if (schedule.day === 'tuesday-thursday' && (currentDay >= 2 && currentDay <= 4)) {
+                        shouldPlay = true;
+                    } else if (schedule.day === 'friday' && currentDay === 5) {
+                        shouldPlay = true;
+                    }
+                    
+                    if (shouldPlay) {
+                        playScheduledBell(schedule);
+                    }
+                }
+            });
+            
+            updateNextBell();
+        }
+
+        // Update next bell display
+        function updateNextBell() {
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            const currentDay = now.getDay();
+            
+            let nextSchedule = null;
+            let minTimeDiff = Infinity;
+            
+            schedules.forEach(schedule => {
+                let isValidDay = false;
+                
+                if (schedule.day === 'all') {
+                    isValidDay = true;
+                } else if (schedule.day === 'monday' && currentDay === 1) {
+                    isValidDay = true;
+                } else if (schedule.day === 'tuesday-thursday' && (currentDay >= 2 && currentDay <= 4)) {
+                    isValidDay = true;
+                } else if (schedule.day === 'friday' && currentDay === 5) {
+                    isValidDay = true;
+                }
+                
+                if (isValidDay) {
+                    const scheduleTime = schedule.time;
+                    if (scheduleTime > currentTime) {
+                        const timeDiff = timeToMinutes(scheduleTime) - timeToMinutes(currentTime);
+                        if (timeDiff < minTimeDiff) {
+                            minTimeDiff = timeDiff;
+                            nextSchedule = schedule;
+                        }
+                    }
+                }
+            });
+            
+            const nextBellElement = document.getElementById('nextBell');
+            if (nextSchedule) {
+                nextBellElement.textContent = `${nextSchedule.time} - ${nextSchedule.description}`;
+            } else {
+                nextBellElement.textContent = '-';
+            }
+        }
+
+        function timeToMinutes(timeString) {
+            const [hours, minutes] = timeString.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // Bell functions
+        function playBell(duration = 5, soundType = 'default', customSound = null) {
+            const bellIcon = document.getElementById('bellIcon');
+            const bellStatus = document.getElementById('bellStatus');
+            
+            bellIcon.classList.add('bell-ring');
+            bellStatus.textContent = 'Berbunyi';
+            bellStatus.className = 'px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium';
+            
+            // Stop any currently playing audio
+            if (currentBellAudio) {
+                currentBellAudio.pause();
+                currentBellAudio.currentTime = 0;
+            }
+            
+            if (soundType === 'custom' && customSound) {
+                // Play custom sound
+                currentBellAudio = new Audio(customSound);
+                const volume = document.getElementById('volumeSlider').value / 100;
+                currentBellAudio.volume = volume;
+                
+                currentBellAudio.play().catch(e => {
+                    console.log('Audio play failed:', e);
+                    playDefaultBell(duration);
+                });
+                
+                bellTimeout = setTimeout(() => {
+                    if (currentBellAudio) {
+                        currentBellAudio.pause();
+                        currentBellAudio.currentTime = 0;
+                    }
+                    stopBell();
+                }, duration * 1000);
+            } else {
+                // Play default beep sound
+                playDefaultBell(duration);
+            }
+        }
+
+        // Function specifically for scheduled bells
+        function playScheduledBell(schedule) {
+            const bellIcon = document.getElementById('bellIcon');
+            const bellStatus = document.getElementById('bellStatus');
+            
+            bellIcon.classList.add('bell-ring');
+            bellStatus.textContent = 'Berbunyi';
+            bellStatus.className = 'px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium';
+            
+            // Stop any currently playing audio
+            if (currentBellAudio) {
+                currentBellAudio.pause();
+                currentBellAudio.currentTime = 0;
+            }
+            
+            if (schedule.soundType === 'custom' && schedule.customSound) {
+                // Play the specific custom sound for this schedule
+                currentBellAudio = new Audio(schedule.customSound);
+                const volume = document.getElementById('volumeSlider').value / 100;
+                currentBellAudio.volume = volume;
+                
+                currentBellAudio.play().catch(e => {
+                    console.log('Custom audio play failed:', e);
+                    playDefaultBell(schedule.duration);
+                });
+                
+                bellTimeout = setTimeout(() => {
+                    if (currentBellAudio) {
+                        currentBellAudio.pause();
+                        currentBellAudio.currentTime = 0;
+                    }
+                    stopBell();
+                }, schedule.duration * 1000);
+            } else {
+                // Play default beep sound
+                playDefaultBell(schedule.duration);
+            }
+        }
+        
+        function playDefaultBell(duration) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                const volume = document.getElementById('volumeSlider').value / 100;
+                gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
+                
+                oscillator.start();
+                
+                bellTimeout = setTimeout(() => {
+                    oscillator.stop();
+                    stopBell();
+                }, duration * 1000);
+            } catch (e) {
+                // Fallback if audio context fails
+                bellTimeout = setTimeout(() => {
+                    stopBell();
+                }, duration * 1000);
+            }
+        }
+
+        function stopBell() {
+            const bellIcon = document.getElementById('bellIcon');
+            const bellStatus = document.getElementById('bellStatus');
+            
+            bellIcon.classList.remove('bell-ring');
+            bellStatus.textContent = 'Siap';
+            bellStatus.className = 'px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium';
+            
+            if (currentBellAudio) {
+                currentBellAudio.pause();
+                currentBellAudio.currentTime = 0;
+            }
+            
+            if (bellTimeout) {
+                clearTimeout(bellTimeout);
+                bellTimeout = null;
+            }
+        }
+
+        // Volume control
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('volumeSlider').addEventListener('input', function() {
+                document.getElementById('volumeDisplay').textContent = this.value + '%';
+            });
+        });
+
+        // Logo upload with automatic saving
+        function uploadLogo() {
+            document.getElementById('logoInput').click();
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const logoImg = document.getElementById('schoolLogo');
+                    const defaultLogo = document.getElementById('defaultLogo');
+                    
+                    logoImg.src = e.target.result;
+                    logoImg.classList.remove('hidden');
+                    defaultLogo.classList.add('hidden');
+                    
+                    // Simpan logo ke localStorage
+                    saveLogoToStorage(e.target.result);
+                    alert('Logo berhasil diupload dan disimpan!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveLogoToStorage(logoData) {
+            try {
+                localStorage.setItem('schoolLogo', logoData);
+                console.log('Logo berhasil disimpan ke localStorage');
+            } catch (error) {
+                console.error('Error saving logo to localStorage:', error);
+                alert('Gagal menyimpan logo. File mungkin terlalu besar.');
+            }
+        }
+
+        function loadLogoFromStorage() {
+            try {
+                const savedLogo = localStorage.getItem('schoolLogo');
+                if (savedLogo) {
+                    const logoImg = document.getElementById('schoolLogo');
+                    const defaultLogo = document.getElementById('defaultLogo');
+                    
+                    logoImg.src = savedLogo;
+                    logoImg.classList.remove('hidden');
+                    defaultLogo.classList.add('hidden');
+                    console.log('Logo berhasil dimuat dari localStorage');
+                }
+            } catch (error) {
+                console.error('Error loading logo from localStorage:', error);
+            }
+        }
+
+        // Sound upload functions
+        function toggleCustomSound() {
+            const soundType = document.getElementById('bellSoundType').value;
+            const uploadBtn = document.getElementById('uploadSoundBtn');
+            
+            if (soundType === 'custom') {
+                uploadBtn.classList.remove('hidden');
+            } else {
+                uploadBtn.classList.add('hidden');
+                customBellSound = null;
+                document.getElementById('soundFileName').classList.add('hidden');
+            }
+        }
+
+        function uploadBellSound() {
+            document.getElementById('soundInput').click();
+        }
+
+        function handleSoundUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type.startsWith('audio/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        customBellSound = e.target.result;
+                        const fileName = document.getElementById('soundFileName');
+                        fileName.textContent = `File dipilih: ${file.name}`;
+                        fileName.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Mohon pilih file audio yang valid (MP3, WAV, dll)');
+                }
+            }
+        }
+
+        function testBellSound() {
+            const soundType = document.getElementById('bellSoundType').value;
+            const duration = parseInt(document.getElementById('scheduleDuration').value) || 5;
+            
+            if (soundType === 'custom' && !customBellSound) {
+                alert('Mohon upload file suara terlebih dahulu!');
+                return;
+            }
+            
+            playBell(duration, soundType, customBellSound);
+        }
+
+        // Background upload functions
+        function uploadBackgroundImage() {
+            document.getElementById('backgroundInput').click();
+        }
+
+        function handleBackgroundUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        backgroundImage = e.target.result;
+                        const preview = document.getElementById('backgroundPreview');
+                        const previewImg = document.getElementById('backgroundImagePreview');
+                        const fileName = document.getElementById('backgroundFileName');
+                        const removeBtn = document.getElementById('removeBackgroundBtn');
+                        
+                        previewImg.src = backgroundImage;
+                        fileName.textContent = `File dipilih: ${file.name}`;
+                        preview.classList.remove('hidden');
+                        removeBtn.classList.remove('hidden');
+                        
+                        // Apply background immediately
+                        applyBackground(backgroundImage);
+                        
+                        // Save to localStorage
+                        saveBackgroundToStorage(backgroundImage);
+                        alert('Background berhasil diupload dan diterapkan!');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Mohon pilih file gambar yang valid (JPG, PNG, GIF, dll)');
+                }
+            }
+        }
+
+        function removeBackgroundImage() {
+            backgroundImage = null;
+            const preview = document.getElementById('backgroundPreview');
+            const removeBtn = document.getElementById('removeBackgroundBtn');
+            
+            preview.classList.add('hidden');
+            removeBtn.classList.add('hidden');
+            document.getElementById('backgroundInput').value = '';
+            
+            // Reset to default background
+            resetBackground();
+        }
+
+        function resetBackground() {
+            backgroundImage = null;
+            document.body.className = 'bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen';
+            
+            // Remove from localStorage
+            localStorage.removeItem('appBackground');
+            
+            // Hide preview
+            const preview = document.getElementById('backgroundPreview');
+            const removeBtn = document.getElementById('removeBackgroundBtn');
+            preview.classList.add('hidden');
+            removeBtn.classList.add('hidden');
+            
+            alert('Background berhasil direset ke default!');
+        }
+
+        function applyBackground(imageData) {
+            document.body.style.backgroundImage = `url(${imageData})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            document.body.className = 'min-h-screen';
+        }
+
+        function saveBackgroundToStorage(backgroundData) {
+            try {
+                localStorage.setItem('appBackground', backgroundData);
+                console.log('Background berhasil disimpan ke localStorage');
+            } catch (error) {
+                console.error('Error saving background to localStorage:', error);
+                alert('Gagal menyimpan background. File mungkin terlalu besar.');
+            }
+        }
+
+        function loadBackgroundFromStorage() {
+            try {
+                const savedBackground = localStorage.getItem('appBackground');
+                if (savedBackground) {
+                    backgroundImage = savedBackground;
+                    applyBackground(savedBackground);
+                    
+                    // Show preview in form if form is open
+                    const preview = document.getElementById('backgroundPreview');
+                    const previewImg = document.getElementById('backgroundImagePreview');
+                    const fileName = document.getElementById('backgroundFileName');
+                    const removeBtn = document.getElementById('removeBackgroundBtn');
+                    
+                    previewImg.src = savedBackground;
+                    fileName.textContent = 'Background tersimpan';
+                    
+                    console.log('Background berhasil dimuat dari localStorage');
+                }
+            } catch (error) {
+                console.error('Error loading background from localStorage:', error);
+            }
+        }
+
+        // Local Storage Functions - Optimized with compression
+        function saveToLocalStorage() {
+            try {
+                // Ensure schedules is always an array
+                if (!Array.isArray(schedules)) {
+                    schedules = [];
+                }
+                
+                // Clean and compress data before saving
+                const compressedSchedules = schedules.map(schedule => {
+                    const compressed = {
+                        t: schedule.time,
+                        d: schedule.description,
+                        dy: schedule.day,
+                        dr: schedule.duration,
+                        st: schedule.soundType || 'default'
+                    };
+                    
+                    // Only include custom sound if it's small enough (max 500KB)
+                    if (schedule.customSound && schedule.customSound.length < 500000) {
+                        compressed.cs = schedule.customSound;
+                    }
+                    
+                    if (schedule.soundFileName) {
+                        compressed.sf = schedule.soundFileName;
+                    }
+                    
+                    return compressed;
+                });
+                
+                const dataToSave = JSON.stringify(compressedSchedules);
+                console.log('Attempting to save', schedules.length, 'schedules');
+                console.log('Compressed data size:', Math.round(dataToSave.length / 1024), 'KB');
+                
+                // Check if data is too large (max 4MB for safety)
+                if (dataToSave.length > 4000000) {
+                    throw new Error('Data too large even after compression');
+                }
+                
+                // Clear old data first to free up space
+                localStorage.removeItem('schoolBellSchedules');
+                
+                // Save compressed data
+                localStorage.setItem('schoolBellSchedules', dataToSave);
+                
+                // Verify the save was successful
+                const verification = localStorage.getItem('schoolBellSchedules');
+                if (verification) {
+                    console.log('✅ Jadwal berhasil disimpan (compressed):', schedules.length, 'jadwal');
+                    return true;
+                } else {
+                    throw new Error('Verification failed - data not saved');
+                }
+            } catch (error) {
+                console.error('❌ Error saving to localStorage:', error);
+                
+                // Try ultra-minimal save (text only, no audio)
+                try {
+                    localStorage.removeItem('schoolBellSchedules');
+                    
+                    const minimalData = schedules.map(schedule => ({
+                        t: schedule.time,
+                        d: schedule.description.substring(0, 50), // Limit description length
+                        dy: schedule.day,
+                        dr: schedule.duration,
+                        st: 'default' // Force default sound to save space
+                    }));
+                    
+                    const minimalJson = JSON.stringify(minimalData);
+                    console.log('Trying minimal save, size:', Math.round(minimalJson.length / 1024), 'KB');
+                    
+                    localStorage.setItem('schoolBellSchedules', minimalJson);
+                    console.log('✅ Jadwal berhasil disimpan (minimal mode):', minimalData.length, 'jadwal');
+                    alert('Jadwal disimpan dalam mode minimal (tanpa suara kustom) karena keterbatasan ruang penyimpanan.');
+                    return true;
+                } catch (minimalError) {
+                    console.error('❌ Minimal save also failed:', minimalError);
+                    
+                    // Last resort: save only essential schedules
+                    try {
+                        localStorage.clear(); // Clear all localStorage to free space
+                        
+                        const essentialSchedules = schedules.slice(0, 10).map(schedule => ({
+                            t: schedule.time,
+                            d: schedule.description.substring(0, 30),
+                            dy: schedule.day,
+                            dr: schedule.duration
+                        }));
+                        
+                        localStorage.setItem('schoolBellSchedules', JSON.stringify(essentialSchedules));
+                        console.log('✅ Saved first 10 schedules only');
+                        alert(`Ruang penyimpanan penuh! Hanya ${essentialSchedules.length} jadwal pertama yang disimpan. Hapus data browser atau kurangi jumlah jadwal.`);
+                        return true;
+                    } catch (lastResortError) {
+                        console.error('❌ All save methods failed:', lastResortError);
+                        alert('GAGAL MENYIMPAN: Browser kehabisan ruang penyimpanan. Silakan:\n1. Hapus data browser (Clear Storage)\n2. Kurangi jumlah jadwal\n3. Hapus file suara kustom yang besar');
+                        return false;
+                    }
+                }
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                console.log('Loading schedules from localStorage...');
+                const savedSchedules = localStorage.getItem('schoolBellSchedules');
+                
+                if (savedSchedules && savedSchedules !== 'null' && savedSchedules !== 'undefined') {
+                    const parsedSchedules = JSON.parse(savedSchedules);
+                    
+                    // Ensure we have a valid array
+                    if (Array.isArray(parsedSchedules)) {
+                        // Decompress data (convert back from compressed format)
+                        schedules = parsedSchedules.map(schedule => {
+                            // Check if it's compressed format (has 't' property) or normal format
+                            if (schedule.t) {
+                                return {
+                                    time: schedule.t,
+                                    description: schedule.d,
+                                    day: schedule.dy,
+                                    duration: schedule.dr,
+                                    soundType: schedule.st || 'default',
+                                    customSound: schedule.cs || null,
+                                    soundFileName: schedule.sf || null
+                                };
+                            } else {
+                                // Already in normal format
+                                return schedule;
+                            }
+                        });
+                        
+                        console.log('✅ Jadwal berhasil dimuat dari localStorage:', schedules.length, 'jadwal');
+                        
+                        // Log each schedule for debugging
+                        schedules.forEach((schedule, index) => {
+                            console.log(`Schedule ${index + 1}:`, schedule.time, '-', schedule.description);
+                        });
+                        
+                        return true;
+                    } else {
+                        throw new Error('Saved data is not an array');
+                    }
+                } else {
+                    console.log('No saved schedules found in localStorage');
+                    schedules = [];
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error loading from localStorage:', error);
+                console.log('Initializing with empty schedules array');
+                schedules = [];
+                
+                // Clear corrupted data
+                try {
+                    localStorage.removeItem('schoolBellSchedules');
+                    console.log('Cleared corrupted localStorage data');
+                } catch (clearError) {
+                    console.error('Error clearing localStorage:', clearError);
+                }
+                
+                return false;
+            }
+        }
+
+        // Force save function for debugging
+        function forceSave() {
+            console.log('Force saving current schedules:', schedules);
+            const success = saveToLocalStorage();
+            if (success) {
+                alert(`Berhasil menyimpan ${schedules.length} jadwal!`);
+            } else {
+                alert('Gagal menyimpan jadwal!');
+            }
+        }
+
+        // Clear storage function
+        function clearStorage() {
+            if (confirm('PERINGATAN: Ini akan menghapus SEMUA data tersimpan (jadwal, logo, background).\n\nApakah Anda yakin ingin melanjutkan?')) {
+                try {
+                    // Clear all localStorage
+                    localStorage.clear();
+                    
+                    // Reset all variables
+                    schedules = [];
+                    backgroundImage = null;
+                    
+                    // Reset UI
+                    document.body.className = 'bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen';
+                    document.getElementById('schoolLogo').classList.add('hidden');
+                    document.getElementById('defaultLogo').classList.remove('hidden');
+                    
+                    renderSchedules();
+                    updateScheduleCount();
+                    updateNextBell();
+                    
+                    alert('✅ Semua data berhasil dihapus! Storage browser telah dibersihkan.');
+                    console.log('✅ All localStorage cleared successfully');
+                } catch (error) {
+                    console.error('Error clearing storage:', error);
+                    alert('❌ Gagal membersihkan storage!');
+                }
+            }
+        }
+
+        // Show storage info
+        function showStorageInfo() {
+            try {
+                let totalSize = 0;
+                let itemCount = 0;
+                let storageInfo = 'INFORMASI PENYIMPANAN BROWSER:\n\n';
+                
+                for (let key in localStorage) {
+                    if (localStorage.hasOwnProperty(key)) {
+                        const value = localStorage.getItem(key);
+                        const size = value ? value.length : 0;
+                        totalSize += size;
+                        itemCount++;
+                        
+                        storageInfo += `${key}: ${Math.round(size / 1024)} KB\n`;
+                    }
+                }
+                
+                storageInfo += `\n📊 RINGKASAN:\n`;
+                storageInfo += `Total Items: ${itemCount}\n`;
+                storageInfo += `Total Size: ${Math.round(totalSize / 1024)} KB\n`;
+                storageInfo += `Jadwal Aktif: ${schedules.length}\n`;
+                
+                // Estimate remaining space (typical browser limit is 5-10MB)
+                const estimatedLimit = 5000; // 5MB in KB
+                const remaining = estimatedLimit - Math.round(totalSize / 1024);
+                storageInfo += `Perkiraan Sisa: ${remaining > 0 ? remaining : 0} KB\n\n`;
+                
+                if (remaining < 500) {
+                    storageInfo += '⚠️ PERINGATAN: Ruang penyimpanan hampir penuh!\n';
+                    storageInfo += 'Pertimbangkan untuk:\n';
+                    storageInfo += '- Hapus jadwal yang tidak perlu\n';
+                    storageInfo += '- Hapus file suara kustom besar\n';
+                    storageInfo += '- Gunakan tombol "Clear Storage"';
+                }
+                
+                alert(storageInfo);
+                console.log('Storage Info:', storageInfo);
+            } catch (error) {
+                console.error('Error getting storage info:', error);
+                alert('❌ Gagal mendapatkan informasi storage!');
+            }
+        }
+
+        // Schedule management functions - Fixed with localStorage!
+        function showAddForm() {
+            const form = document.getElementById('scheduleForm');
+            const title = document.getElementById('formTitle');
+            
+            form.classList.remove('hidden');
+            title.textContent = 'Tambah Jadwal Baru';
+            currentEditIndex = -1;
+            clearForm();
+        }
+
+        function cancelForm() {
+            const form = document.getElementById('scheduleForm');
+            form.classList.add('hidden');
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('scheduleTime').value = '';
+            document.getElementById('scheduleDescription').value = '';
+            document.getElementById('scheduleDay').value = 'all';
+            document.getElementById('scheduleDuration').value = '5';
+            document.getElementById('bellSoundType').value = 'default';
+            document.getElementById('uploadSoundBtn').classList.add('hidden');
+            document.getElementById('soundFileName').classList.add('hidden');
+            customBellSound = null;
+        }
+
+        function saveSchedule() {
+            const time = document.getElementById('scheduleTime').value;
+            const description = document.getElementById('scheduleDescription').value;
+            const day = document.getElementById('scheduleDay').value;
+            const duration = parseInt(document.getElementById('scheduleDuration').value);
+            const soundType = document.getElementById('bellSoundType').value;
+
+            if (!time || !description) {
+                alert('Mohon lengkapi waktu dan keterangan!');
+                return;
+            }
+
+            if (soundType === 'custom' && !customBellSound) {
+                alert('Mohon upload file suara untuk suara kustom!');
+                return;
+            }
+
+            const schedule = { 
+                time, 
+                description, 
+                day, 
+                duration, 
+                soundType, 
+                customSound: soundType === 'custom' ? customBellSound : null,
+                soundFileName: soundType === 'custom' && customBellSound ? 
+                    document.getElementById('soundFileName').textContent.replace('File dipilih: ', '') : null
+            };
+
+            console.log('Saving new schedule:', schedule);
+            console.log('Current schedules before save:', schedules.length);
+
+            if (currentEditIndex >= 0) {
+                schedules[currentEditIndex] = schedule;
+                console.log('Updated existing schedule at index:', currentEditIndex);
+            } else {
+                schedules.push(schedule);
+                console.log('Added new schedule. Total schedules now:', schedules.length);
+            }
+
+            // Simpan ke localStorage dengan verifikasi
+            const saveSuccess = saveToLocalStorage();
+            
+            if (saveSuccess) {
+                renderSchedules();
+                cancelForm();
+                updateScheduleCount();
+                updateNextBell();
+                
+                // Tampilkan notifikasi berhasil
+                alert(`Jadwal berhasil disimpan! Total: ${schedules.length} jadwal`);
+                
+                // Verifikasi dengan reload data
+                setTimeout(() => {
+                    const testLoad = localStorage.getItem('schoolBellSchedules');
+                    if (testLoad) {
+                        const testParse = JSON.parse(testLoad);
+                        console.log('Verification: localStorage contains', testParse.length, 'schedules');
+                    }
+                }, 100);
+            } else {
+                alert('Gagal menyimpan jadwal! Silakan coba lagi.');
+            }
+        }
+
+        function editSchedule(index) {
+            const schedule = schedules[index];
+            document.getElementById('scheduleTime').value = schedule.time;
+            document.getElementById('scheduleDescription').value = schedule.description;
+            document.getElementById('scheduleDay').value = schedule.day;
+            document.getElementById('scheduleDuration').value = schedule.duration;
+            document.getElementById('bellSoundType').value = schedule.soundType || 'default';
+            
+            if (schedule.soundType === 'custom' && schedule.customSound) {
+                customBellSound = schedule.customSound;
+                document.getElementById('uploadSoundBtn').classList.remove('hidden');
+                document.getElementById('soundFileName').textContent = 'File suara kustom tersimpan';
+                document.getElementById('soundFileName').classList.remove('hidden');
+            } else {
+                document.getElementById('uploadSoundBtn').classList.add('hidden');
+                document.getElementById('soundFileName').classList.add('hidden');
+                customBellSound = null;
+            }
+            
+
+            
+            document.getElementById('scheduleForm').classList.remove('hidden');
+            document.getElementById('formTitle').textContent = 'Edit Jadwal';
+            currentEditIndex = index;
+        }
+
+        function deleteSchedule(index) {
+            if (confirm('Yakin ingin menghapus jadwal ini?')) {
+                console.log('Deleting schedule at index:', index);
+                console.log('Schedule to delete:', schedules[index]);
+                console.log('Total schedules before delete:', schedules.length);
+                
+                schedules.splice(index, 1);
+                
+                console.log('Total schedules after delete:', schedules.length);
+                
+                // Simpan ke localStorage setelah menghapus
+                const saveSuccess = saveToLocalStorage();
+                
+                if (saveSuccess) {
+                    renderSchedules();
+                    updateScheduleCount();
+                    updateNextBell();
+                    
+                    alert(`Jadwal berhasil dihapus! Sisa: ${schedules.length} jadwal`);
+                } else {
+                    alert('Gagal menghapus jadwal dari penyimpanan!');
+                }
+            }
+        }
+
+        function renderSchedules() {
+            const scheduleList = document.getElementById('scheduleList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (schedules.length === 0) {
+                scheduleList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            const dayNames = {
+                'all': 'Setiap Hari',
+                'monday': 'Senin',
+                'tuesday-thursday': 'Selasa - Kamis',
+                'friday': 'Jumat'
+            };
+            
+            scheduleList.innerHTML = schedules.map((schedule, index) => `
+                <div class="bg-white bg-opacity-90 rounded-lg p-4 flex items-center justify-between shadow-md">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4">
+                            <div class="text-2xl font-bold text-blue-600">${schedule.time}</div>
+                            <div>
+                                <div class="font-medium text-gray-800">${schedule.description}</div>
+                                <div class="text-sm text-gray-600">
+                                    ${dayNames[schedule.day]} • ${schedule.duration} detik • 
+                                    ${schedule.soundType === 'custom' ? 
+                                        `Suara Kustom${schedule.soundFileName ? ` (${schedule.soundFileName})` : ''}` : 
+                                        'Suara Default'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="editSchedule(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteSchedule(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateScheduleCount() {
+            document.getElementById('scheduleCount').textContent = `${schedules.length} jadwal`;
+        }
+
+        // Auto-save monitoring
+        function startAutoSaveMonitoring() {
+            // Save every 30 seconds as backup
+            setInterval(() => {
+                if (schedules.length > 0) {
+                    console.log('Auto-save backup triggered');
+                    saveToLocalStorage();
+                }
+            }, 30000);
+            
+            // Monitor localStorage changes
+            window.addEventListener('beforeunload', function(e) {
+                console.log('Page unloading, final save attempt');
+                saveToLocalStorage();
+            });
+            
+            // Monitor storage events
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'schoolBellSchedules') {
+                    console.log('Storage event detected for schedules');
+                    loadFromLocalStorage();
+                    renderSchedules();
+                    updateScheduleCount();
+                }
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing School Bell Application...');
+            
+            // Muat jadwal, logo, dan background dari localStorage terlebih dahulu
+            console.log('📂 Loading data from localStorage...');
+            loadFromLocalStorage();
+            loadLogoFromStorage();
+            loadBackgroundFromStorage();
+            
+            // Start monitoring systems
+            startAutoSaveMonitoring();
+            
+            setInterval(updateTime, 1000);
+            updateTime();
+            renderSchedules();
+            updateScheduleCount();
+            
+            console.log('✅ Aplikasi berhasil dimulai dengan', schedules.length, 'jadwal tersimpan');
+            
+            // Debug info
+            console.log('🔧 Debug Info:');
+            console.log('- localStorage available:', typeof(Storage) !== "undefined");
+            console.log('- Current schedules array:', schedules);
+            console.log('- localStorage content:', localStorage.getItem('schoolBellSchedules'));
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d52400a5dc4ab7',t:'MTc1NDg4ODEyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
